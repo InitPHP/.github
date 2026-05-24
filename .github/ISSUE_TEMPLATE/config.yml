@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Question / How do I…?
+    url: https://github.com/orgs/InitPHP/discussions/categories/q-a
+    about: For usage questions, please use GitHub Discussions Q&A — answers stay searchable for everyone.
+  - name: 💡 Feature idea or new package proposal
+    url: https://github.com/orgs/InitPHP/discussions/categories/ideas
+    about: Please start a Discussion first. Once an idea has consensus, a maintainer will promote it to a tracked issue.
+  - name: 🔐 Security vulnerability
+    url: https://github.com/InitPHP/.github/blob/main/SECURITY.md
+    about: Do NOT open a public issue. See SECURITY.md for private disclosure channels (GitHub PVR + email).
+  - name: 📖 Documentation
+    url: https://initphp.org
+    about: Browse the full documentation site.
+  - name: 🙋 Show and tell
+    url: https://github.com/orgs/InitPHP/discussions/categories/show-and-tell
+    about: Built something with InitPHP? Share it with the community.

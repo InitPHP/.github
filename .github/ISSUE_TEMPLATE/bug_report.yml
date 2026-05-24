@@ -1,0 +1,104 @@
+name: 🐛 Bug report
+description: Report a reproducible bug in an InitPHP package
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Before submitting, please confirm that:
+        - You have updated to the **latest version** of the affected package.
+        - You have **searched existing issues** (open and closed) and Discussions for duplicates.
+        - The bug is reproducible — "it doesn't work sometimes" is very hard to act on.
+
+        For usage questions ("how do I do X?"), please use [Discussions Q&A](https://github.com/orgs/InitPHP/discussions/categories/q-a) instead.
+
+        For security vulnerabilities, **do NOT open a public issue** — see [SECURITY.md](https://github.com/InitPHP/.github/blob/main/SECURITY.md).
+
+  - type: input
+    id: package
+    attributes:
+      label: Affected package
+      description: The Composer name of the package the bug is in.
+      placeholder: initphp/http
+    validations:
+      required: true
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      description: Run `composer show <package>` and paste the installed version.
+      placeholder: 2.2.0
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+      description: Output of `php -v` (just the version number is fine).
+      placeholder: "8.3.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other / Docker / Cloud
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear, concise description of the bug. What did you expect, what actually happened?
+      placeholder: |
+        I expected ... but instead ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: Minimal reproducer
+      description: A small standalone PHP snippet (or numbered steps) that triggers the bug.
+      render: php
+      placeholder: |
+        <?php
+        require __DIR__ . '/vendor/autoload.php';
+
+        // smallest code that reproduces the bug
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Error output (if any)
+      description: Stack trace, exception message, or unexpected output. Use code fences.
+      render: shell
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment details
+      description: Relevant extensions (ext-curl, ext-redis, ext-pdo, ...), database engine, OS distribution version, container image, anything that might matter.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have searched existing issues and Discussions for duplicates.
+          required: true
+        - label: I have updated to the latest version of the package and confirmed the bug still reproduces.
+          required: true
+        - label: I have read and agree to follow the [Code of Conduct](https://github.com/InitPHP/.github/blob/main/CODE_OF_CONDUCT.md).
+          required: true
