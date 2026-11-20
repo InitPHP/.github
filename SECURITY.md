@@ -18,7 +18,7 @@ This is the preferred channel because it keeps the entire conversation, draft ad
 
 If you cannot use GitHub PVR (for example, you do not have an account or your employer's policy blocks it), email:
 
-**[info@muhammetsafak.com.tr](mailto:info@muhammetsafak.com.tr)**
+**[info@muhammetsafak.com](mailto:info@muhammetsafak.com)**
 
 Please include the word `SECURITY` in the subject line so the message is routed correctly. If you wish to encrypt the report, request a public key in your initial message and we will exchange one.
 
