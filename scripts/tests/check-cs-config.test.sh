@@ -2,6 +2,7 @@
 #
 # Tests for scripts/check-cs-config.sh. Run: bash scripts/tests/check-cs-config.test.sh
 
+# shellcheck disable=SC2016  # PHP source text in single quotes, nothing should expand
 set -uo pipefail
 
 tests_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -40,6 +41,28 @@ new_package excluded
 sed -i.bak "s#^\\\$excludeDirs = .*#\$excludeDirs = ['Unit/FileLanguages', 'Unit/Fixtures'];#; s#^\\\$excludePaths = .*#\$excludePaths = ['Stubs/aws-sdk.php'];#" "${work}/excluded/.php-cs-fixer.dist.php"
 rm "${work}/excluded/.php-cs-fixer.dist.php.bak"
 expect_status "package-specific exclude lines are ignored" 0 "${work}/excluded"
+
+# The exclude lines must hold only a list of single-quoted strings.
+inject() { # <name> <replacement for the $excludeDirs line>
+    new_package "$1"
+    local replacement="$2" file="${work}/$1/.php-cs-fixer.dist.php"
+    awk -v r="$replacement" '/^\$excludeDirs = / { print r; next } { print }' "$file" > "${file}.new" && mv "${file}.new" "$file"
+}
+
+inject injected-statement '$excludeDirs = []; $finder = null; $excludeDirs = [];'
+expect_status "extra statements on an exclude line fail" 1 "${work}/injected-statement"
+
+inject injected-call '$excludeDirs = []; return (new PhpCsFixer\Config())->setRules([]); $unused = [];'
+expect_status "a returned config on an exclude line fails" 1 "${work}/injected-call"
+
+inject injected-expression '$excludeDirs = [foo()];'
+expect_status "a non-literal element fails" 1 "${work}/injected-expression"
+
+inject injected-double-quote '$excludeDirs = ["Unit/Fixtures"];'
+expect_status "double-quoted strings fail" 1 "${work}/injected-double-quote"
+
+inject literal-list "\$excludeDirs = ['Unit/FileLanguages', 'Unit/Fixtures'];"
+expect_status "a list of single-quoted strings passes" 0 "${work}/literal-list"
 
 new_package drifted
 sed -i.bak "s#'single_quote' => true,#'single_quote' => false,#" "${work}/drifted/.php-cs-fixer.dist.php"

@@ -41,16 +41,20 @@ if [ -e "${package_dir}/.php-cs-fixer.php" ]; then
     status=1
 fi
 
-# shellcheck disable=SC2016  # the dollar signs are literal regex text
-exclude_regex='^\$exclude(Dirs|Paths) = \[.*\];$'
+# The two lines may only hold a single-quoted string-literal list, e.g.
+# $excludeDirs = ['Unit/Fixtures', 'Stubs']; anything else (extra statements,
+# expressions) stays in the diff and fails the check.
+string_list="\\[('[^'\\\\]*'(, '[^'\\\\]*')*)?\\];"
 
 for variable in excludeDirs excludePaths; do
-    count="$(grep -cE "^\\\$${variable} = \\[.*\\];\$" "$config" || true)"
+    count="$(grep -cE "^\\\$${variable} = ${string_list}\$" "$config" || true)"
     if [ "$count" -ne 1 ]; then
-        echo "${package_name}: expected exactly one single-line \$${variable} assignment, found ${count}" >&2
+        echo "${package_name}: expected exactly one \$${variable} assignment holding only a single-line list of single-quoted strings, found ${count}" >&2
         status=1
     fi
 done
+
+exclude_regex="^\\\$exclude(Dirs|Paths) = ${string_list}\$"
 
 work_dir="$(mktemp -d "${TMPDIR:-/tmp}/check-cs-config.XXXXXX")"
 trap 'rm -rf "$work_dir"' EXIT
