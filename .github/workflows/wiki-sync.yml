@@ -1,0 +1,77 @@
+name: Wiki sync
+
+# Reusable workflow (ADR-004, ADR-007): publishes a package's docs/ directory to
+# its GitHub wiki. The wiki is never edited by hand; every run replaces its whole
+# content with what docs/ produces, so pages missing from docs/ are removed.
+#
+# Caller example (in a package repository):
+#
+#   name: Wiki
+#   on:
+#     push:
+#       branches: [ main ]
+#       paths: [ 'docs/**' ]
+#     workflow_dispatch:
+#   permissions:
+#     contents: write
+#   jobs:
+#     wiki:
+#       uses: InitPHP/.github/.github/workflows/wiki-sync.yml@main
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync docs/ to wiki
+    runs-on: ubuntu-latest
+    concurrency:
+      group: wiki-sync-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout package
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Checkout wiki sync script
+        uses: actions/checkout@v4
+        with:
+          repository: InitPHP/.github
+          ref: main
+          path: org-github
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - name: Validate docs
+        run: bash org-github/scripts/wiki-sync.sh --check docs
+
+      - name: Checkout wiki
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}.wiki
+          ref: master
+          path: wiki
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Replace wiki content with docs
+        run: |
+          git -C wiki config lfs.locksverify false
+          find wiki -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          bash org-github/scripts/wiki-sync.sh docs wiki
+
+      - name: Commit and push
+        working-directory: wiki
+        run: |
+          git add --all
+          if git diff --cached --quiet; then
+            echo "Wiki is already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --message "docs: sync wiki from docs/ at ${GITHUB_SHA}"
+          git push origin HEAD:master
