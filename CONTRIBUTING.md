@@ -156,6 +156,6 @@ Every merged PR is permanently credited on the GitHub commit history and in the 
 
 - Process or workflow questions → [Discussions → General](https://github.com/orgs/InitPHP/discussions/categories/general)
 - "How do I do X with package Y?" → [Discussions → Q&A](https://github.com/orgs/InitPHP/discussions/categories/q-a)
-- Code of Conduct concerns → [info@muhammetsafak.com.tr](mailto:info@muhammetsafak.com.tr)
+- Code of Conduct concerns → [info@muhammetsafak.com](mailto:info@muhammetsafak.com)
 
 Thanks again. Contributions of any size make the difference between a project that is alive and one that just sits on a shelf.

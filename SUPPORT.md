@@ -13,7 +13,7 @@ Before opening anything, please skim the relevant package's README — most ques
 | Request a feature or new package | [**GitHub Discussions → Ideas**](https://github.com/orgs/InitPHP/discussions/categories/ideas) — promote to an issue once there is consensus |
 | Share something you built with InitPHP | [**GitHub Discussions → Show and tell**](https://github.com/orgs/InitPHP/discussions/categories/show-and-tell) |
 | Report a security vulnerability | **Do NOT open a public issue.** Follow [`SECURITY.md`](./SECURITY.md). |
-| Report Code of Conduct violations | Email [info@muhammetsafak.com.tr](mailto:info@muhammetsafak.com.tr) — see [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md). |
+| Report Code of Conduct violations | Email [info@muhammetsafak.com](mailto:info@muhammetsafak.com) — see [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md). |
 | Find official documentation | [**initphp.org**](https://initphp.org) |
 | Browse releases | [**Packagist**](https://packagist.org/packages/initphp/) |
 
@@ -28,7 +28,7 @@ When opening an issue or discussion, please:
 
 ## Commercial support
 
-There is currently no commercial support offering for InitPHP. If your organisation needs a paid engagement (consulting, integration help, custom features, prioritised bug fixes), reach out at [info@muhammetsafak.com.tr](mailto:info@muhammetsafak.com.tr) and we can discuss whether something can be arranged on a case-by-case basis.
+There is currently no commercial support offering for InitPHP. If your organisation needs a paid engagement (consulting, integration help, custom features, prioritised bug fixes), reach out at [info@muhammetsafak.com](mailto:info@muhammetsafak.com) and we can discuss whether something can be arranged on a case-by-case basis.
 
 ## Contributing back
 
