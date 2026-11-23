@@ -75,7 +75,7 @@ Avoid sending a large PR for a feature that has not been discussed — you may i
 
 Every InitPHP package follows the same baseline:
 
-- **PSR-12** code style. CI runs PHP-CS-Fixer; please run it locally before pushing (`composer cs-fix` if the package exposes it).
+- **PER-CS** code style (the PHP-FIG successor to PSR-12), enforced with PHP-CS-Fixer. CI runs it; please run it locally before pushing (`composer cs-fix` if the package exposes it).
 - **`declare(strict_types=1);`** at the top of every `.php` source file in `src/`.
 - **Typed properties, parameters and return types** wherever PHP allows it (PHP 7.4+ for properties, 8.0+ for union types, 8.1+ for readonly / enum / intersection).
 - **PHPStan** at the level configured in the package — fix every reported issue, do not silence.

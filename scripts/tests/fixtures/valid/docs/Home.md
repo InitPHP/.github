@@ -23,6 +23,40 @@
 
 [after fences](Installation.md)
 
+````markdown
+```php
+[inside a longer fence](Installation.md) must stay, the shorter marker above does not close it.
+```
+````
+
+~~~
+```
+[inside tilde fence with a backtick line](Installation.md)
+~~~
+
+Two-backtick span: ``[x](Installation.md)`` and a `[y](Installation.md)` span stay, [this](Installation.md) is rewritten.
+
+[after the longer fences](Installation.md)
+
+```text
+> ```php
+> [inside the outer fence](Installation.md)
+> ```
+```
+
+[after the outer fence](Installation.md)
+
+> ```php
+> [inside a quoted fence](Installation.md)
+> ```
+
+[after the quoted fence](Installation.md)
+
+> ```php
+> an unclosed quoted fence
+
+[after the unclosed quoted fence](Installation.md)
+
 <a id="top"></a>
 
 ## Local

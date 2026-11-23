@@ -1,0 +1,43 @@
+name: Script tests
+
+# Runs the shell tests of scripts/ on Linux (ubuntu-latest: bash 5, GNU grep, a
+# current perl). The scripts are used from main by every package's wiki sync, so a
+# broken change must fail here before it is merged.
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Shell tests (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Show tool versions
+        run: |
+          bash --version | head -n 1
+          grep --version | head -n 1
+          perl -e 'print "perl $^V\n"'
+          shellcheck --version | head -n 2
+
+      - name: ShellCheck
+        run: shellcheck scripts/*.sh scripts/tests/*.sh
+
+      - name: Run tests
+        run: |
+          status=0
+          for test in scripts/tests/*.test.sh; do
+            echo "::group::${test}"
+            bash "$test" || status=1
+            echo "::endgroup::"
+          done
+          exit "$status"
