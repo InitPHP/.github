@@ -27,7 +27,10 @@
 # decoded (&amp; &lt; &copy; ... and numeric ones); a fenced block indented four
 # or more spaces (inside a nested list) is not recognised as a fence; YAML front
 # matter and raw HTML blocks other than single-line <hN> headings are not
-# interpreted. The slug of a heading is checked against GitHub's own rendering
+# interpreted. Whether a line of text can be the start of a setext heading is a
+# heuristic over the block structure (one level of list item, block quote and HTML
+# block is tracked; deeper nesting and multi-line HTML blocks that contain blank
+# lines are not). The slug of a heading is checked against GitHub's own rendering
 # in tests/fixtures/anchor-slugs.
 #
 # Exit codes: 0 ok, 1 check failed, 2 usage error.
@@ -43,11 +46,17 @@ usage() {
 # Perl source shared by link_filter and heading_slugs, so both see the same
 # fences and the same protected spans. It holds no single quote: it is pasted
 # in front of each program as a shell variable.
-#   fence_line($line)  1 when the line opens, closes or sits inside a fenced code
-#                      block. A fence closes only on the same character, at least
-#                      as long as the opening one and with nothing after it; a
-#                      backtick fence whose info string holds a backtick is
-#                      inline code, not a fence.
+#   fence_line($line)  takes the raw line and returns 1 when it opens, closes or
+#                      sits inside a fenced code block. A fence closes only on the
+#                      same character, at least as long as the opening one and
+#                      with nothing after it; a backtick fence whose info string
+#                      holds a backtick is inline code, not a fence. A fence
+#                      opened inside a block quote remembers how many "> "
+#                      markers it sat under and ends, as in CommonMark, on the
+#                      first line with fewer; markers on a line inside a fence
+#                      that sits at a shallower depth are plain code.
+#   quote_split($line, $max)  (markers stripped, rest of the line); all of them
+#                      without $max.
 #   quote_body($line)  the line without its leading "> " markers.
 #   protect($line)     replaces code spans and backslash escapes with
 #                      placeholders so no later rule reads inside them;
@@ -56,23 +65,35 @@ usage() {
 # shellcheck disable=SC2016  # perl source, not shell
 PERL_COMMON='
 use strict; use warnings;
-my ($fence_char, $fence_len) = ("", 0);
+my ($fence_char, $fence_len, $fence_depth) = ("", 0, 0);
 my @stash;
+sub quote_split {
+    my ($l, $max) = @_;
+    my $depth = 0;
+    while ((!defined $max || $depth < $max) && $l =~ s/^[ \t]{0,3}>[ \t]?//) { ++$depth; }
+    return ($depth, $l);
+}
+sub quote_body { return (quote_split($_[0]))[1]; }
 sub fence_line {
     my $l = shift;
-    if ($fence_char eq "") {
-        return 0 unless $l =~ /^\s{0,3}(`{3,}|~{3,})(.*)$/;
-        my ($run, $info) = ($1, $2);
-        return 0 if substr($run, 0, 1) eq "`" && $info =~ /`/;
-        ($fence_char, $fence_len) = (substr($run, 0, 1), length $run);
-        return 1;
+    if ($fence_char ne "") {
+        my ($depth, $body) = quote_split($l, $fence_depth);
+        if ($depth < $fence_depth) {
+            ($fence_char, $fence_len, $fence_depth) = ("", 0, 0);
+        } else {
+            if ($body =~ /^\s{0,3}(`{3,}|~{3,})\s*$/ && substr($1, 0, 1) eq $fence_char && length($1) >= $fence_len) {
+                ($fence_char, $fence_len, $fence_depth) = ("", 0, 0);
+            }
+            return 1;
+        }
     }
-    if ($l =~ /^\s{0,3}(`{3,}|~{3,})\s*$/ && substr($1, 0, 1) eq $fence_char && length($1) >= $fence_len) {
-        ($fence_char, $fence_len) = ("", 0);
-    }
+    my ($depth, $body) = quote_split($l);
+    return 0 unless $body =~ /^\s{0,3}(`{3,}|~{3,})(.*)$/;
+    my ($run, $info) = ($1, $2);
+    return 0 if substr($run, 0, 1) eq "`" && $info =~ /`/;
+    ($fence_char, $fence_len, $fence_depth) = (substr($run, 0, 1), length $run, $depth);
     return 1;
 }
-sub quote_body { my $l = shift; $l =~ s/^(?:[ \t]{0,3}>[ \t]?)+//; return $l; }
 sub protect {
     my $s = shift;
     $s =~ s{\\([\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e])|(?<!`)(`+)(?!`)(.+?)(?<!`)\2(?!`)}{
@@ -117,7 +138,7 @@ link_filter() {
         sub target_of { return restore(shift, "text"); }
         while (my $line = <STDIN>) {
             $line_no++;
-            if (fence_line(quote_body($line))) { print $line if $mode eq "rewrite"; next; }
+            if (fence_line($line)) { print $line if $mode eq "rewrite"; next; }
 
             my $work = protect($line);
             if ($work =~ $refdef) {
@@ -211,15 +232,22 @@ heading_slugs() {
             print "$slug\n";
         }
 
-        my ($comment, @para) = (0);
+        # Block state used to guess where a setext heading can start: a paragraph
+        # (@para, at quote depth $para_depth) is only turned into a heading by an
+        # underline at the same depth, and text that belongs to a list item or an
+        # HTML block is never part of one.
+        my $block_html = qr{^\s{0,3}<(?:/?(?:address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|/?>|$)|\?|![A-Za-z]|(?:script|pre|style|textarea)(?:\s|>|$))}i;
+        my $lone_tag   = qr{^\s{0,3}</?[A-Za-z][A-Za-z0-9\-]*(?:\s[^<>]*)?/?>\s*$};
+        my $list_item  = qr{^\s{0,3}(?:[-*+]|\d{1,9}[.)])(?:[ \t]|$)};
+        my ($comment, @para, $para_depth, $in_html, $in_list, $after_blank) = (0);
         foreach my $raw (@lines) {
             $raw =~ s/\r?\n$//;
-            my $body = quote_body($raw);
+            my ($depth, $body) = quote_split($raw);
             if ($comment) {
                 next unless $body =~ s/^.*?-->//;
                 $comment = 0;
             }
-            if (fence_line($body)) { @para = (); next; }
+            if (fence_line($raw)) { @para = (); $in_html = 0; $after_blank = 0; next; }
             my $line = protect($body);
             $line =~ s/<!--.*?-->//g;
             $comment = 1 if $line =~ s/<!--.*$//;
@@ -237,20 +265,44 @@ heading_slugs() {
                 $text =~ s/(?:^|[ \t]+)\#+$//;
                 emit_slug(slug_of($text));
                 @para = ();
+                ($in_html, $in_list, $after_blank) = (0, 0, 0);
                 next;
             }
             emit_slug(slug_of($2)) while $line =~ m{<h([1-6])\b[^<>]*>(.*?)</h\1\s*>}gi;
+
+            if ($line =~ /^\s*$/) { @para = (); ($in_html, $after_blank) = (0, 1); next; }
+            my $was_blank = $after_blank;
+            $after_blank = 0;
+            if (@para && $depth != $para_depth) {
+                # A line with fewer "> " markers continues a quoted paragraph (lazy
+                # continuation) unless it starts another block.
+                if ($depth < $para_depth && $line !~ /^\s{0,3}(?:=+|-+|[-*_](?:[ \t]*[-*_]){2,})[ \t]*$/ && $line !~ $list_item && $line !~ $block_html) {
+                    push @para, $line;
+                    next;
+                }
+                @para = ();
+            }
+            next if $in_html;
 
             if (@para && $line =~ /^\s{0,3}(?:=+|-+)[ \t]*$/) {
                 emit_slug(slug_of(join "", map { trim($_) } @para));
                 @para = ();
                 next;
             }
-            my $starts_block = $line =~ /^\s{4,}/
-                || $line =~ /^\s{0,3}(?:[-*+]|\d{1,9}[.)])(?:[ \t]|$)/
-                || $line =~ /^\s{0,3}(?:<|\||\[[^\]]+\]:)/
-                || $line =~ /^\s{0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$/;
-            if ($line =~ /^\s*$/ || $starts_block) { @para = (); next; }
+            if ($line =~ /^\s{0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$/) { @para = (); $in_list = 0; next; }
+            if ($line =~ $list_item) { @para = (); $in_list = 1; next; }
+            if ($in_list) {
+                if ($line =~ /^\s{2,}/ || !$was_blank) { @para = (); next; }
+                $in_list = 0;
+            }
+            if ($line =~ $block_html || (!@para && $line =~ $lone_tag)) {
+                $in_html = 1 unless $line =~ /-->/;
+                @para = ();
+                next;
+            }
+            if (!@para && $line =~ /^\s{4,}/) { next; }
+            if (!@para && $line =~ /^\s{0,3}(?:\||\[[^\]]+\]:)/) { next; }
+            $para_depth = $depth unless @para;
             push @para, $line;
         }
     ' < "$1"

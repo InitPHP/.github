@@ -20,6 +20,7 @@
 - [Top](#top), [upper-case top](#TOP), [percent-encoded](#%C3%B6n)
 - [Repeats](#again), [again 1](#again-1), [again 2](#again-2), [clash with a literal heading](#again-1-1)
 - [Inline tags are dropped](#press-ctrl-to-save)
+- [Setext with an indented continuation](#para-before-indented-lineindented-continuation)
 - [A target after a comment](#after-comment) and [a heading after one](#after-the-comment)
 - [Reference definition on this page][local-ref]
 
@@ -48,6 +49,10 @@
 
 Setext title
 ------------
+
+Para before indented line
+    indented continuation
+---
 
 Two lines
 setext heading

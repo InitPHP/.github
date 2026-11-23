@@ -38,6 +38,25 @@ Two-backtick span: ``[x](Installation.md)`` and a `[y](Installation.md)` span st
 
 [after the longer fences](Installation.md)
 
+```text
+> ```php
+> [inside the outer fence](Installation.md)
+> ```
+```
+
+[after the outer fence](Installation.md)
+
+> ```php
+> [inside a quoted fence](Installation.md)
+> ```
+
+[after the quoted fence](Installation.md)
+
+> ```php
+> an unclosed quoted fence
+
+[after the unclosed quoted fence](Installation.md)
+
 <a id="top"></a>
 
 ## Local

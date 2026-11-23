@@ -40,3 +40,31 @@
 <!-- <a name="hidden"></a> -->
 
 `<a name="inline-name">`
+
+- [List item text](#continued-item-text)
+- [Quoted paragraph](#quoted-para)
+- [HTML block text](#html-text)
+- [Lazy continuation of a quote](#lazy-line)
+- [Block-level tag with text](#text-here)
+- [Indented code](#indented-code)
+
+- item
+  continued item text
+---
+
+> quoted para
+---
+
+<p>
+html text
+---
+
+> a
+lazy line
+---
+
+<div>text here
+---
+
+    indented code
+---

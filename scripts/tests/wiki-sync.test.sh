@@ -92,8 +92,14 @@ expect_stderr_contains "check: percent-encoded anchors are decoded" "Home.md:14:
 expect_stderr_contains "check: an explicit target inside an HTML comment does not count" "Home.md:15: broken anchor 'Home.md#hidden'"
 expect_stderr_contains "check: reference definitions are checked across pages" "Home.md:17: broken anchor 'Other.md#nope-ref'"
 expect_stderr_contains "check: reference definitions are checked on the same page" "Home.md:18: broken anchor 'Home.md#gone-local'"
-# Exactly the fourteen broken anchors above, nothing else (the existing anchors stay accepted).
-if [ "$(grep -c 'broken anchor' "${work}/stderr")" -eq 14 ] && ! grep -qF "Other.md#present" "${work}/stderr"; then
+expect_stderr_contains "check: text in a list item is not a setext heading" "Home.md:44: broken anchor 'Home.md#continued-item-text'"
+expect_stderr_contains "check: a quoted paragraph is not closed by an underline outside the quote" "Home.md:45: broken anchor 'Home.md#quoted-para'"
+expect_stderr_contains "check: text in an HTML block is not a setext heading" "Home.md:46: broken anchor 'Home.md#html-text'"
+expect_stderr_contains "check: a lazy continuation line is not a setext heading" "Home.md:47: broken anchor 'Home.md#lazy-line'"
+expect_stderr_contains "check: a block-level tag starts an HTML block" "Home.md:48: broken anchor 'Home.md#text-here'"
+expect_stderr_contains "check: indented code is not a setext heading" "Home.md:49: broken anchor 'Home.md#indented-code'"
+# Exactly the twenty broken anchors above, nothing else (the existing anchors stay accepted).
+if [ "$(grep -c 'broken anchor' "${work}/stderr")" -eq 20 ] && ! grep -qF "Other.md#present" "${work}/stderr"; then
     pass "check: reports exactly the broken anchors and accepts an existing one"
 else
     fail "check: reports exactly the broken anchors and accepts an existing one" "$(cat "${work}/stderr")"
@@ -136,6 +142,19 @@ if grep -qF "broken anchor" "${work}/stderr"; then
     fail "check: an unreadable page is not reported as a broken anchor" "$(cat "${work}/stderr")"
 else
     pass "check: an unreadable page is not reported as a broken anchor"
+fi
+
+# A fence inside a block quote ends with the quote; "> ```" lines inside an outer
+# fence are plain code. Only Gone2, Gone4 and Gone5 and the fake heading are broken.
+expect_status "check: block quote fences" 1 bash "$script" --check "${fixtures}/blockquote-fence/docs"
+expect_stderr_contains "check: a link after a fence that held quoted fences is checked" "Home.md:10: broken link 'Gone2.md'"
+expect_stderr_contains "check: a link after a quoted fence is checked" "Home.md:16: broken link 'Gone4.md'"
+expect_stderr_contains "check: a quoted fence ends with the quote" "Home.md:21: broken link 'Gone5.md'"
+expect_stderr_contains "check: a heading inside quoted code is no target" "Home.md:26: broken anchor 'Home.md#fake-outer'"
+if [ "$(grep -c 'broken' "${work}/stderr")" -eq 4 ]; then
+    pass "check: links inside fences are not reported"
+else
+    fail "check: links inside fences are not reported" "$(cat "${work}/stderr")"
 fi
 
 expect_status "check: subdirectory fails" 1 bash "$script" --check "${fixtures}/subdir/docs"
