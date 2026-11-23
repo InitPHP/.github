@@ -75,6 +75,18 @@ expect_stderr_contains "check: names the broken link" "Home.md:3: broken link 'N
 expect_status "check: link leaving docs/ fails" 1 bash "$script" --check "${fixtures}/outside-link/docs"
 expect_stderr_contains "check: names the outside link" "../README.md"
 
+expect_status "check: anchors match GitHub heading slugs" 0 bash "$script" --check "${fixtures}/anchor-slugs/docs"
+
+expect_status "check: broken anchor fails" 1 bash "$script" --check "${fixtures}/broken-anchor/docs"
+expect_stderr_contains "check: names the broken cross-page anchor" "Home.md:3: broken anchor 'Other.md#nope'"
+expect_stderr_contains "check: names the broken same-page anchor" "Home.md:4: broken anchor 'Home.md#absent'"
+expect_stderr_contains "check: ignores headings inside fences" "Home.md:5: broken anchor 'Home.md#fenced-heading'"
+if grep -qF "Other.md#present" "${work}/stderr"; then
+    fail "check: accepts an existing anchor" "$(cat "${work}/stderr")"
+else
+    pass "check: accepts an existing anchor"
+fi
+
 expect_status "check: subdirectory fails" 1 bash "$script" --check "${fixtures}/subdir/docs"
 expect_stderr_contains "check: names the subdirectory" "subdirectories are not allowed"
 
