@@ -20,7 +20,7 @@
 
 ## What is InitPHP?
 
-InitPHP publishes a family of independent, single-responsibility PHP packages. Each one solves a specific problem — HTTP messaging, routing, validation, sessions, etc. — and adheres to the relevant PHP-FIG standard (PSR-3, PSR-7, PSR-11, PSR-12, PSR-16, PSR-17, PSR-18 where applicable).
+InitPHP publishes a family of independent, single-responsibility PHP packages. Each one solves a specific problem — HTTP messaging, routing, validation, sessions, etc. — and adheres to the relevant PHP-FIG standard (PSR-3, PSR-7, PSR-11, PSR-16, PSR-17, PSR-18 where applicable). The code style is PER-CS.
 
 InitPHP is **not** a framework. There is no monolithic runtime, no opinionated bootstrap, no "you must structure your app like this". Take a router and nothing else; pair a query builder with a third-party DI container; or combine a dozen InitPHP packages to build something larger. The choice is yours.
 
